@@ -19,12 +19,14 @@ char *cities[] = { "Porto Alegre", "Canoas", "Esteio", "Sapucaia do Sul",
 		"São Leopoldo", "Novo Hamburgo" };
 int citiesKM[] = { 0, 8, 17, 24, 38, 40 };
 char bus[4][9];
+char busTmp[4][9];
 void waitingForUser(void);
 void clearScreen(void);
 void printCities(void);
 int printMenu();
 struct tm* getLocalTime();
 void printBusAccents(void);
+void printBusAccentsTemp(void);
 
 int main(void) {
 	int i;
@@ -41,6 +43,7 @@ int main(void) {
 	for (i = 0; i < 4; i++) {
 		for (j = 0; j < 9; j++) {
 			bus[i][j] = '0';
+			busTmp[i][j] = '0';
 		}
 	}
 
@@ -58,6 +61,7 @@ int main(void) {
 			printf("\nSelecione uma opção: ");
 			scanf("%d", &start);
 			start -= 1;
+			clearScreen();
 			printf("\nPartida: %s\n", cities[start]);
 
 			printf("\nEscolha o ponto de destino\n");
@@ -65,6 +69,7 @@ int main(void) {
 			printf("\nSelecione uma opção: ");
 			scanf("%d", &end);
 			end -= 1;
+			clearScreen();
 
 			printf("\n**************************\n");
 			printf("*Partida: %s\n", cities[start]);
@@ -74,7 +79,6 @@ int main(void) {
 			if (citiesKM[start] < citiesKM[end]) {
 				totalKM = citiesKM[end] - citiesKM[start];
 			} else {
-
 				totalKM = citiesKM[start] - citiesKM[end];
 			}
 			subTotal = valueOfKM * totalKM;
@@ -90,14 +94,25 @@ int main(void) {
 				scanf("%d", &columnSelected);
 
 				printf("Fila: %d, Coluna: %d\n\n", rowSelected, columnSelected);
-				if(bus[rowSelected - 1][columnSelected - 1] == '0'){
+				if (bus[rowSelected - 1][columnSelected - 1] == '0') {
 					bus[rowSelected - 1][columnSelected - 1] = 'x';
+					busTmp[rowSelected - 1][columnSelected - 1] = 'x';
 					break;
-				}else{
+				} else {
 					printf("Poltrona ocupada, selecione outro assento.");
 				}
 			}
-			printBusAccents();
+
+			clearScreen();
+			printf("\n**************************\n");
+			printf("*Partida: %s\n", cities[start]);
+			printf("*Destino: %s\n", cities[end]);
+			printf("*Poltrona: %d:%d\n", rowSelected, columnSelected);
+			printBusAccentsTemp();
+			printf("**************************\n");
+			printf("SubTotal: R$%.2f\n", subTotal);
+			printf("\n");
+			busTmp[rowSelected - 1][columnSelected - 1] = '0';
 			break;
 		case 2:
 			clearScreen();
@@ -176,6 +191,18 @@ void printBusAccents(void) {
 		printf("%d", i + 1);
 		for (j = 0; j < 9; j++) {
 			printf("%c", bus[i][j]);
+		}
+		printf("\n");
+	}
+}
+
+void printBusAccentsTemp(void) {
+	int i, j;
+	printf(" 123456789\n");
+	for (i = 0; i < 4; i++) {
+		printf("%d", i + 1);
+		for (j = 0; j < 9; j++) {
+			printf("%c", busTmp[i][j]);
 		}
 		printf("\n");
 	}
