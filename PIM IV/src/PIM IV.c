@@ -46,6 +46,7 @@ void initializeBusHours(void);
 void printBusHours(void);
 void initializeBusSeats(void);
 float calcTotal(int start, int end);
+int clean_stdin();
 
 int main(void) {
 	int rowSelected;
@@ -55,6 +56,7 @@ int main(void) {
 	int busHour;
 	int oldMan;
 	float subTotal;
+	char c;
 
 	initializeBusSeats();
 	initializeBusHours();
@@ -70,7 +72,11 @@ int main(void) {
 				printCities();
 
 				printf("\nSelecione uma opção: ");
-				scanf("%d", &start);
+				while (((scanf("%d%c", &start, &c) != 2 || c != '\n')
+						&& clean_stdin()) || start < 1 || start > 4) {
+					printf("\nPonto de partida invalido.\n");
+					printf("Selecione uma opção: ");
+				}
 				start -= 1;
 				clearScreen();
 				printf("\nPartida: %s\n", cities[start]);
@@ -78,7 +84,11 @@ int main(void) {
 				printf("\nEscolha o ponto de destino\n");
 				printCities();
 				printf("\nSelecione uma opção: ");
-				scanf("%d", &end);
+				while (((scanf("%d%c", &end, &c) != 2 || c != '\n')
+						&& clean_stdin()) || end < 1 || end > 9) {
+					printf("\nPonto de destino invalido.\n");
+					printf("Selecione uma opção: ");
+				}
 				end -= 1;
 				clearScreen();
 
@@ -107,7 +117,8 @@ int main(void) {
 				printf("\nSelecione a coluna (de 1 a 9): ");
 				scanf("%d", &columnSelected);
 				columnSelected -= 1;
-				printf("Fila: %d, Coluna: %d\n\n", rowSelected + 1, columnSelected + 1);
+				printf("Fila: %d, Coluna: %d\n\n", rowSelected + 1,
+						columnSelected + 1);
 				break;
 			}
 
@@ -296,4 +307,10 @@ float calcTotal(int start, int end) {
 	}
 	subTotal = valueOfKM * totalKM;
 	return subTotal;
+}
+
+int clean_stdin(void) {
+	while (getchar() != '\n')
+		;
+	return 1;
 }
