@@ -54,7 +54,7 @@ int main(void) {
 	int start;
 	int end;
 	int busHour;
-	int oldMan;
+	//int oldMan;
 	float subTotal;
 	char c;
 
@@ -93,8 +93,7 @@ int main(void) {
 				clearScreen();
 
 				if (start == end) {
-					printf(
-							"O ponto de partida e destino devem ser diferentes.\n");
+					printf("O ponto de partida e destino devem ser diferentes.\n");
 				} else {
 					break;
 				}
@@ -125,6 +124,7 @@ int main(void) {
 			printBusHours();
 			printf("\nSelecione o horário de partida do ônibus\n");
 			scanf("%d", &busHour);
+			busHour -= 1;
 
 			clearScreen();
 			printf("\n**************************\n");
@@ -291,7 +291,12 @@ void printBusHours(void) {
 	int i = 0;
 	while (i < (sizeof(hoursBus) / sizeof(char[8]))) {
 		if (strlen(hoursBus[i]) > 0) {
-			printf("%d - %s\n", i, hoursBus[i]);
+			if(i+1 < 10){
+				printf("  %d - %s | ", i + 1, hoursBus[i]);
+			}else{
+				printf(" %d - %s | ", i + 1, hoursBus[i]);
+			}
+			if((i+1) % 5 == 0) printf("\n");
 		}
 		i++;
 	}
@@ -310,7 +315,6 @@ float calcTotal(int start, int end) {
 }
 
 int clean_stdin(void) {
-	while (getchar() != '\n')
-		;
+	while (getchar() != '\n');
 	return 1;
 }
