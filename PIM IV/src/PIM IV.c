@@ -13,6 +13,14 @@
 #include <time.h>
 #include <string.h>
 
+#ifndef NULL
+#define NULL   ((void *) 0)
+#endif
+
+#ifndef __unix__
+#define __unix__ 0
+#endif
+
 //Global variables
 int idVenda = 0;
 int menuSize = 2;
@@ -22,7 +30,7 @@ int timeBetweenBus = 2100;
 int busBegin = 5;
 int busEnd = 23;
 char *cities[] = { "Porto Alegre", "Canoas", "Esteio", "Sapucaia do Sul",
-		"São Leopoldo", "Novo Hamburgo" };
+		"Sao Leopoldo", "Novo Hamburgo" };
 int citiesKM[] = { 0, 8, 17, 24, 38, 40 };
 char bus[4][9];
 char busTmp[4][9];
@@ -71,11 +79,11 @@ int main(void) {
 				printf("\nEscolha o ponto de partida\n\n");
 				printCities();
 
-				printf("\nSelecione uma opção: ");
+				printf("\nSelecione uma opcao: ");
 				while (((scanf("%d%c", &start, &c) != 2 || c != '\n')
 						&& clean_stdin()) || start < 1 || start > 4) {
 					printf("\nPonto de partida invalido.\n");
-					printf("Selecione uma opção: ");
+					printf("Selecione uma opcao: ");
 				}
 				start -= 1;
 				clearScreen();
@@ -83,11 +91,11 @@ int main(void) {
 
 				printf("\nEscolha o ponto de destino\n");
 				printCities();
-				printf("\nSelecione uma opção: ");
+				printf("\nSelecione uma opcao: ");
 				while (((scanf("%d%c", &end, &c) != 2 || c != '\n')
 						&& clean_stdin()) || end < 1 || end > 9) {
 					printf("\nPonto de destino invalido.\n");
-					printf("Selecione uma opção: ");
+					printf("Selecione uma opcao: ");
 				}
 				end -= 1;
 				clearScreen();
@@ -122,7 +130,7 @@ int main(void) {
 			}
 
 			printBusHours();
-			printf("\nSelecione o horário de partida do ônibus\n");
+			printf("\nSelecione o horario de partida do onibus\n");
 			scanf("%d", &busHour);
 			busHour -= 1;
 
@@ -130,7 +138,7 @@ int main(void) {
 			printf("\n**************************\n");
 			printf("*Partida: %s\n", cities[start]);
 			printf("*Destino: %s\n", cities[end]);
-			printf("*Horario de saída: %s\n", hoursBus[busHour]);
+			printf("*Horario de saida: %s\n", hoursBus[busHour]);
 			printf("*Poltrona: %d:%d\n", rowSelected, columnSelected);
 			printBusAccents(busTmp);
 			printf("**************************\n");
@@ -148,7 +156,7 @@ int main(void) {
 			break;
 		case 2:
 			clearScreen();
-			printf("Relatório de vendas\n\n");
+			printf("Relatorio de vendas\n\n");
 			printf("\n");
 			int i = 0;
 			while (i < idVenda) {
@@ -156,7 +164,7 @@ int main(void) {
 				printf("*Numero da passagem: %d\n", i + 1);
 				printf("*Partida: %s\n", cities[sales[i][0]]);
 				printf("*Destino: %s\n", cities[sales[i][1]]);
-				printf("*Horario de saída: %s\n", hoursBus[sales[i][5]]);
+				printf("*Horario de saida: %s\n", hoursBus[sales[i][5]]);
 				printf("*Poltrona: %d:%d\n", sales[i][2] + 1, sales[i][3] + 1);
 				printf("**************************\n");
 				printf("SubTotal: R$%.2f\n", subTotal);
@@ -166,7 +174,7 @@ int main(void) {
 			break;
 		case 0:
 			clearScreen();
-			printf("Até mais!\n");
+			printf("Ate mais!\n");
 			return EXIT_SUCCESS;
 		}
 		waitingForUser();
@@ -205,9 +213,9 @@ int printMenu() {
 	WRITEMENU: clearScreen();
 	printf("\nNOME DA EMPRESA DE ONIBUS\n\n");
 	printf("1 - Vender passagem\n");
-	printf("2 - Relatório de vendas\n");
+	printf("2 - Relatorio de vendas\n");
 	printf("0 - Sair do sistema\n\n");
-	printf("Selecione uma opção: ");
+	printf("Selecione uma opcao: ");
 	scanf("%d", &option);
 
 	if (option < 0 || option > menuSize) {
@@ -238,30 +246,18 @@ void initializeBusSeats(void) {
 
 void initializeBusHours(void) {
 	int i = 0;
-	char hours[2];
-	char minutes[2];
-	char seconds[2];
-	char busHour[8];
+	char hours[3];
+	char minutes[3];
+	char seconds[3];
+	char busHour[9];
 	int begin = (busBegin * (60 * 60));
 	int end = (busEnd * (60 * 60));
 	while (begin <= end) {
 		int forHours = begin / 3600, remainder = begin % 3600, forMinutes =
 				remainder / 60, forSeconds = remainder % 60;
 		sprintf(hours, "%d", forHours);
-		if (forHours < 10) {
-			hours[1] = hours[0];
-			hours[0] = '0';
-		}
 		sprintf(minutes, "%d", forMinutes);
-		if (forMinutes < 10) {
-			minutes[1] = minutes[0];
-			minutes[0] = '0';
-		}
 		sprintf(seconds, "%d", forSeconds);
-		if (forSeconds < 10) {
-			seconds[1] = seconds[0];
-			seconds[0] = '0';
-		}
 
 		strcpy(busHour, hours);
 		strcat(busHour, ":");
@@ -289,7 +285,7 @@ void printBusAccents(char printBus[4][9]) {
 
 void printBusHours(void) {
 	int i = 0;
-	while (i < (sizeof(hoursBus) / sizeof(char[8]))) {
+	while (i < (sizeof(hoursBus) / sizeof(char[9]))) {
 		if (strlen(hoursBus[i]) > 0) {
 			if(i+1 < 10){
 				printf("  %d - %s | ", i + 1, hoursBus[i]);
