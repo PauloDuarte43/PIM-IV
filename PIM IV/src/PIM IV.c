@@ -34,7 +34,7 @@ char *cities[] = { "Porto Alegre", "Canoas", "Esteio", "Sapucaia do Sul",
 int citiesKM[] = { 0, 8, 17, 24, 38, 40 };
 char bus[4][9];
 char busTmp[4][9];
-char hoursBus[35][9];
+char hoursBus[35][12];
 
 //0 - partida
 //1 - destino
@@ -51,7 +51,7 @@ int printMenu();
 struct tm* getLocalTime();
 void printBusAccents(char printBus[4][9]);
 void initializeBusHours(void);
-void printBusHours(void);
+int printBusHours(void);
 void initializeBusSeats(void);
 float calcTotal(int start, int end);
 int clean_stdin();
@@ -101,7 +101,8 @@ int main(void) {
 				clearScreen();
 
 				if (start == end) {
-					printf("O ponto de partida e destino devem ser diferentes.\n");
+					printf(
+							"O ponto de partida e destino devem ser diferentes.\n");
 				} else {
 					break;
 				}
@@ -116,22 +117,33 @@ int main(void) {
 			printf("SubTotal: R$%.2f\n", subTotal);
 			printf("\n");
 
-			while (1) {
+			printf("\nSelecione a fila (de 1 a 4): ");
+			while (((scanf("%d%c", &rowSelected, &c) != 2 || c != '\n')
+					&& clean_stdin()) || rowSelected < 1 || rowSelected > 4) {
+				printf("\nFila invalida. ");
 				printf("\nSelecione a fila (de 1 a 4): ");
-				scanf("%d", &rowSelected);
-				rowSelected -= 1;
-
-				printf("\nSelecione a coluna (de 1 a 9): ");
-				scanf("%d", &columnSelected);
-				columnSelected -= 1;
-				printf("Fila: %d, Coluna: %d\n\n", rowSelected + 1,
-						columnSelected + 1);
-				break;
 			}
+			rowSelected -= 1;
 
-			printBusHours();
-			printf("\nSelecione o horario de partida do onibus\n");
-			scanf("%d", &busHour);
+			printf("\nSelecione a coluna (de 1 a 9): ");
+			while (((scanf("%d%c", &columnSelected, &c) != 2 || c != '\n')
+					&& clean_stdin()) || columnSelected < 1
+					|| columnSelected > 9) {
+				printf("\nColuna invalida. ");
+				printf("\nSelecione a coluna (de 1 a 9): ");
+			}
+			columnSelected -= 1;
+			printf("Fila: %d, Coluna: %d\n\n", rowSelected + 1,
+					columnSelected + 1);
+
+			int totalHours = printBusHours();
+			printf("\nSelecione o horario de partida do onibus (de 1 a %d)\n", totalHours);
+			while (((scanf("%d%c", &busHour, &c) != 2 || c != '\n')
+					&& clean_stdin()) || busHour < 1 || busHour > totalHours) {
+				printf("\nHorario invalido.\n");
+				printBusHours();
+				printf("\nSelecione o horario de partida do onibus (de 1 a %d)\n", totalHours);
+			}
 			busHour -= 1;
 
 			clearScreen();
@@ -249,15 +261,34 @@ void initializeBusHours(void) {
 	char hours[3];
 	char minutes[3];
 	char seconds[3];
-	char busHour[9];
+	char busHour[12];
 	int begin = (busBegin * (60 * 60));
 	int end = (busEnd * (60 * 60));
 	while (begin <= end) {
 		int forHours = begin / 3600, remainder = begin % 3600, forMinutes =
 				remainder / 60, forSeconds = remainder % 60;
 		sprintf(hours, "%d", forHours);
+		if (forHours < 10) {
+			char temp[3];
+			strcpy(temp, "0");
+			strcat(temp, hours);
+			strcpy(hours, temp);
+		}
 		sprintf(minutes, "%d", forMinutes);
+		if (forMinutes < 10) {
+			char temp[3];
+			strcpy(temp, "0");
+			strcat(temp, minutes);
+			strcpy(minutes, temp);
+
+		}
 		sprintf(seconds, "%d", forSeconds);
+		if (forSeconds < 10) {
+			char temp[3];
+			strcpy(temp, "0");
+			strcat(temp, seconds);
+			strcpy(seconds, temp);
+		}
 
 		strcpy(busHour, hours);
 		strcat(busHour, ":");
@@ -283,19 +314,22 @@ void printBusAccents(char printBus[4][9]) {
 	}
 }
 
-void printBusHours(void) {
-	int i = 0;
-	while (i < (sizeof(hoursBus) / sizeof(char[9]))) {
+int printBusHours(void) {
+	int j = 0, i = 0;
+	while (i < (sizeof(hoursBus) / sizeof(char[12]))) {
 		if (strlen(hoursBus[i]) > 0) {
-			if(i+1 < 10){
+			j++;
+			if (i + 1 < 10) {
 				printf("  %d - %s | ", i + 1, hoursBus[i]);
-			}else{
+			} else {
 				printf(" %d - %s | ", i + 1, hoursBus[i]);
 			}
-			if((i+1) % 5 == 0) printf("\n");
+			if ((i + 1) % 5 == 0)
+				printf("\n");
 		}
 		i++;
 	}
+	return j;
 }
 
 float calcTotal(int start, int end) {
@@ -311,6 +345,7 @@ float calcTotal(int start, int end) {
 }
 
 int clean_stdin(void) {
-	while (getchar() != '\n');
+	while (getchar() != '\n')
+		;
 	return 1;
 }
