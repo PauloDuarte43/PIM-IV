@@ -24,7 +24,7 @@
 //Global variables
 
 int menuSize = 3;
-int maxCapacity = 2;
+int maxCapacity = 35;
 int num_cities = 6;
 float valueOfKM = 0.2625;
 float studentDiscountPercentage = 0.5;
@@ -59,6 +59,8 @@ float calcTotal(int start, int end);
 int cleanStdin();
 void findSaleByHour(int idHour);
 int validAssent(int row, int column);
+int busNumber(char busHour[12]);
+int validOldMan(void);
 
 int main(void) {
 	int rowSelected;
@@ -73,6 +75,10 @@ int main(void) {
 	int totalHours;
 	char oldMan;
 	char student;
+	char confirmSale;
+	double totalGeral;
+	int countStudent;
+	int countOldMan;
 
 	//initializeBusSeats();
 	initializeBusHours();
@@ -81,7 +87,7 @@ int main(void) {
 		switch (printMenu()) {
 		case 1:
 			clearScreen();
-			printf("Venda de passagens\n");
+			START: printf("Venda de passagens\n");
 
 			while (1) {
 				totalHours = printBusHours();
@@ -90,6 +96,7 @@ int main(void) {
 						totalHours);
 				while (((scanf("%d%c", &busHour, &c) != 2 || c != '\n')
 						&& cleanStdin()) || busHour < 1 || busHour > totalHours) {
+					clearScreen();
 					printf("\nHorario invalido.\n");
 					printBusHours();
 					printf(
@@ -104,7 +111,9 @@ int main(void) {
 					printf("\nOnibus lotado escolha outro horario.\n");
 				}
 			}
+
 			clearScreen();
+			printf("*Horario de saida: %s\n", hoursBus[busHour]);
 
 			while (1) {
 				printf("\nEscolha o ponto de partida\n\n");
@@ -113,6 +122,8 @@ int main(void) {
 				printf("\nSelecione uma opcao: ");
 				while (((scanf("%d%c", &start, &c) != 2 || c != '\n')
 						&& cleanStdin()) || start < 1 || start > 4) {
+					clearScreen();
+					printCities();
 					printf("\nPonto de partida invalido.\n");
 					printf("Selecione uma opcao: ");
 				}
@@ -125,11 +136,12 @@ int main(void) {
 				printf("\nSelecione uma opcao: ");
 				while (((scanf("%d%c", &end, &c) != 2 || c != '\n')
 						&& cleanStdin()) || end < 1 || end > 9) {
+					clearScreen();
+					printCities();
 					printf("\nPonto de destino invalido.\n");
 					printf("Selecione uma opcao: ");
 				}
 				end -= 1;
-				clearScreen();
 
 				if (start == end) {
 					printf(
@@ -139,29 +151,39 @@ int main(void) {
 				}
 			}
 
+			clearScreen();
 			printf("\n**************************\n");
 			printf("*Partida: %s\n", cities[start]);
 			printf("*Destino: %s\n", cities[end]);
 			printf("**************************\n");
 
-			printf("\nSelecione a fila (de 1 a 4): ");
-			while (((scanf("%d%c", &rowSelected, &c) != 2 || c != '\n')
-					&& cleanStdin()) || rowSelected < 1 || rowSelected > 4) {
-				printf("\nFila invalida. ");
+			while (1) {
 				printf("\nSelecione a fila (de 1 a 4): ");
-			}
-			rowSelected -= 1;
+				while (((scanf("%d%c", &rowSelected, &c) != 2 || c != '\n')
+						&& cleanStdin()) || rowSelected < 1 || rowSelected > 4) {
+					clearScreen();
+					printf("\nFila invalida. ");
+					printf("\nSelecione a fila (de 1 a 4): ");
+				}
+				rowSelected -= 1;
 
-			printf("\nSelecione a coluna (de 1 a 9): ");
-			while (((scanf("%d%c", &columnSelected, &c) != 2 || c != '\n')
-					&& cleanStdin()) || columnSelected < 1 || columnSelected > 9) {
-				printf("\nColuna invalida. ");
 				printf("\nSelecione a coluna (de 1 a 9): ");
+				while (((scanf("%d%c", &columnSelected, &c) != 2 || c != '\n')
+						&& cleanStdin()) || columnSelected < 1
+						|| columnSelected > 9) {
+					clearScreen();
+					printf("\nColuna invalida. ");
+					printf("\nSelecione a coluna (de 1 a 9): ");
+				}
+				columnSelected -= 1;
+				if (!validAssent(rowSelected, columnSelected)) {
+					printf("Assento ocupado\n");
+				} else {
+					break;
+				}
 			}
-			columnSelected -= 1;
-			if (!validAssent(rowSelected, columnSelected)) {
-				printf("Assento invalido\n");
-			}
+
+			clearScreen();
 			printf("Fila: %d, Coluna: %d\n\n", rowSelected + 1,
 					columnSelected + 1);
 
@@ -176,7 +198,14 @@ int main(void) {
 				printf("\nDesconto para idoso? (S-Sim ou N-Nao) ");
 			}
 
+			discount = 0;
 			if (oldMan == 's' || oldMan == 'S') {
+				if (!validOldMan()) {
+					printf(
+							"Este horario ja atingiu o limite de idosos, selecione outro horario.");
+					waitingForUser();
+					goto START;
+				}
 				discount = subTotal * oldManDiscountPercentage;
 			} else {
 				printf("\nDesconto para estudante? (S-Sim ou N-Nao) ");
@@ -200,6 +229,7 @@ int main(void) {
 			printf("*Partida: %s\n", cities[start]);
 			printf("*Destino: %s\n", cities[end]);
 			printf("*Horario de saida: %s\n", hoursBus[busHour]);
+			printf("*Numero do onibus: %d\n", busNumber(hoursBus[busHour]));
 			printf("*Poltrona: %d:%d\n", rowSelected + 1, columnSelected + 1);
 			printf("**************************\n");
 			printf("SubTotal: R$%.2f\n", subTotal);
@@ -207,14 +237,26 @@ int main(void) {
 			printf("Total: R$%.2f\n", total);
 			printf("\n");
 
-			sales[countSales][0] = start;
-			sales[countSales][1] = end;
-			sales[countSales][2] = rowSelected;
-			sales[countSales][3] = columnSelected;
-			sales[countSales][4] = oldMan == 'S' || oldMan == 'S';
-			sales[countSales][5] = busHour;
-			sales[countSales][6] = student == 'S' || student == 'S';
-			countSales++;
+			printf("\nConfirmar venda? (S-Sim ou N-Nao) ");
+			while (((scanf("%s%c", &confirmSale, &c) != 2 || c != '\n')
+					&& cleanStdin())
+					|| (confirmSale != 'n' && confirmSale != 's'
+							&& confirmSale != 'N' && confirmSale != 'S')) {
+				printf("\nOpcao invalida.");
+				printf("\nConfirmar venda? (S-Sim ou N-Nao) ");
+			}
+			if (confirmSale == 's' || confirmSale == 'S') {
+				sales[countSales][0] = start;
+				sales[countSales][1] = end;
+				sales[countSales][2] = rowSelected;
+				sales[countSales][3] = columnSelected;
+				sales[countSales][4] = oldMan == 's' || oldMan == 'S';
+				sales[countSales][5] = busHour;
+				sales[countSales][6] = student == 's' || student == 'S';
+				countSales++;
+			} else {
+				printf("\nVenda cancelada.");
+			}
 			waitingForUser();
 			break;
 		case 2:
@@ -222,25 +264,57 @@ int main(void) {
 			printf("Relatorio de vendas\n\n");
 			printf("\n");
 			int i = 0;
+			totalGeral = 0;
+			countStudent = 0;
+			countOldMan = 0;
+
 			while (i < countSales) {
 				printf("\n**************************\n");
 				printf("*Numero da passagem: %d\n", i + 1);
 				printf("*Partida: %s\n", cities[sales[i][0]]);
 				printf("*Destino: %s\n", cities[sales[i][1]]);
 				printf("*Horario de saida: %s\n", hoursBus[sales[i][5]]);
+				printf("*Numero do onibus: %d\n",
+						busNumber(hoursBus[sales[i][5]]));
 				printf("*Poltrona: %d:%d\n", sales[i][2] + 1, sales[i][3] + 1);
 				printf("**************************\n");
-				//printf("SubTotal: R$%.2f\n", subTotal);
+				subTotal = calcTotal(sales[i][0], sales[i][1]);
+				discount = 0;
+				if (sales[i][4] == 1) {
+					countOldMan++;
+					discount = subTotal * oldManDiscountPercentage;
+				} else {
+					if (sales[i][6] == 1) {
+						countStudent++;
+						discount = subTotal * studentDiscountPercentage;
+					}
+				}
+				total = subTotal - discount;
+				printf("SubTotal: R$%.2f\n", subTotal);
+				printf("Desconto: R$%.2f\n", discount);
+				printf("Total: R$%.2f\n", total);
 				printf("\n");
+				totalGeral += total;
 				i++;
 			}
+			printf("\n**************************\n");
+			printf("*Total de passagens vendidas: %d\n", countSales);
+			printf(
+					"*Total de passagens vendidas com desconto de estudante: %d\n",
+					countStudent);
+			printf("*Total de passagens vendidas com desconto de idoso: %d\n",
+					countOldMan);
+			printf("Total de vendas do dia: R$%.2f\n", totalGeral);
+			printf("**************************\n");
+
 			waitingForUser();
 			break;
 		case 3:
-			printf("Relatorio de vendas por onibus\n\n");
+			printf("Relatorio de vendas por horario\n\n");
 			int h = printBusHours();
 			printf("\nSelecione o horario de partida do onibus (de 1 a %d)\n",
 					totalHours);
+			totalGeral = 0;
 			while (((scanf("%d%c", &busHour, &c) != 2 || c != '\n')
 					&& cleanStdin()) || busHour < 1 || busHour > h) {
 				printf("\nHorario invalido.\n");
@@ -259,11 +333,24 @@ int main(void) {
 				printf("*Partida: %s\n", cities[salesByHour[i][0]]);
 				printf("*Destino: %s\n", cities[salesByHour[i][1]]);
 				printf("*Horario de saida: %s\n", hoursBus[salesByHour[i][5]]);
+				printf("*Numero do onibus: %d\n",
+						busNumber(hoursBus[salesByHour[i][5]]));
 				printf("*Poltrona: %d:%d\n", salesByHour[i][2] + 1,
 						salesByHour[i][3] + 1);
 				printf("**************************\n");
-				//printf("SubTotal: R$%.2f\n", subTotal);
+				subTotal = calcTotal(salesByHour[i][0], salesByHour[i][1]);
+				if (sales[i][4] == 1) {
+					discount = subTotal * oldManDiscountPercentage;
+				} else {
+					if (sales[i][6] == 1) {
+						discount = subTotal * studentDiscountPercentage;
+					}
+				}
+				printf("SubTotal: R$%.2f\n", subTotal);
+				printf("Desconto: R$%.2f\n", discount);
+				printf("Total: R$%.2f\n", total);
 				printf("\n");
+				totalGeral += total;
 				i++;
 			}
 			waitingForUser();
@@ -305,17 +392,24 @@ void printCities(void) {
 
 int printMenu() {
 	int option;
-	WRITEMENU: clearScreen();
+	char c;
+	clearScreen();
 	printf("\nNOME DA EMPRESA DE ONIBUS\n\n");
 	printf("1 - Vender passagem\n");
 	printf("2 - Relatorio de vendas\n");
 	printf("3 - Relatorio de vendas por onibus\n");
 	printf("0 - Sair do sistema\n\n");
 	printf("Selecione uma opcao: ");
-	scanf("%d", &option);
-
-	if (option < 0 || option > menuSize) {
-		goto WRITEMENU;
+	while (((scanf("%d%c", &option, &c) != 2 || c != '\n') && cleanStdin())
+			|| option < 0 || option > menuSize) {
+		clearScreen();
+		printf("Opcao invalida.\n");
+		printf("\nNOME DA EMPRESA DE ONIBUS\n\n");
+		printf("1 - Vender passagem\n");
+		printf("2 - Relatorio de vendas\n");
+		printf("3 - Relatorio de vendas por onibus\n");
+		printf("0 - Sair do sistema\n\n");
+		printf("Selecione uma opcao: ");
 	}
 	return option;
 }
@@ -452,6 +546,32 @@ int validAssent(int row, int column) {
 		i++;
 	}
 	return 1;
+}
+
+int validOldMan(void) {
+	int i = 0;
+	int count = 0;
+	while (i < countSalesByHour) {
+		if (salesByHour[i][4] == 1) {
+			count++;
+		}
+		i++;
+	}
+	if (count < 2) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
+
+int busNumber(char busHour[12]) {
+	char *n = malloc(sizeof(char) * 5);
+	n[0] = busHour[4];
+	n[1] = busHour[3];
+	n[2] = busHour[1];
+	n[3] = busHour[0];
+	int a = (int) strtol(n, NULL, 10);
+	return a;
 }
 
 int cleanStdin(void) {
