@@ -116,6 +116,7 @@ int main(void) {
 			printf("*Horario de saida: %s\n", hoursBus[busHour]);
 
 			while (1) {
+				clearScreen();
 				printf("\nEscolha o ponto de partida\n\n");
 				printCities();
 
@@ -228,6 +229,8 @@ int main(void) {
 			printf("\n**************************\n");
 			printf("*Partida: %s\n", cities[start]);
 			printf("*Destino: %s\n", cities[end]);
+			printf("now: %d-%d-%d\n", getLocalTime()->tm_mday,
+					getLocalTime()->tm_mon, getLocalTime()->tm_year + 1900);
 			printf("*Horario de saida: %s\n", hoursBus[busHour]);
 			printf("*Numero do onibus: %d\n", busNumber(hoursBus[busHour]));
 			printf("*Poltrona: %d:%d\n", rowSelected + 1, columnSelected + 1);
