@@ -254,6 +254,7 @@ int main(void) {
 				sales[countSales][5] = busHour;
 				sales[countSales][6] = student == 's' || student == 'S';
 				countSales++;
+				printf("\nVenda concluida com sucesso.");
 			} else {
 				printf("\nVenda cancelada.");
 			}
