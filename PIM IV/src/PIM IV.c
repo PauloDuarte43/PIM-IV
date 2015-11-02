@@ -3,7 +3,7 @@
  Name        : PIM.c
  Author      : Paulo Duarte
  Version     :
- Copyright   : Â© 2015 Paulo Duarte All Rights Reserved
+ Copyright   : © 2015 Paulo Duarte All Rights Reserved
  Description : PIM IV in C, Ansi-style
  ============================================================================
  */
@@ -22,28 +22,32 @@
 #endif
 
 //Global variables
-
 int menuSize = 3;
 int maxCapacity = 35;
+int maxOldMan = 2;
+char *cities[] = { "Porto Alegre", "Canoas", "Esteio", "Sapucaia do Sul",
+		"Sao Leopoldo", "Novo Hamburgo" };
+int citiesKM[] = { 0, 8, 17, 24, 38, 40 };
 int num_cities = 6;
+
 float valueOfKM = 0.2625;
 float studentDiscountPercentage = 0.5;
 float oldManDiscountPercentage = 1;
 int timeBetweenBus = 2100;
 int busBegin = 5;
 int busEnd = 23;
-char *cities[] = { "Porto Alegre", "Canoas", "Esteio", "Sapucaia do Sul",
-		"Sao Leopoldo", "Novo Hamburgo" };
-int citiesKM[] = { 0, 8, 17, 24, 38, 40 };
+
 char bus[4][9];
 char busTmp[4][9];
 char hoursBus[35][12];
 
-//0-partida 1-destino 2-fila 3-coluna 4-idoso 5-horario 6-estudante
 int countSales = 0;
-int sales[1296][7];
-
 int countSalesByHour;
+//0-partida 1-destino 2-fila 3-coluna 4-idoso 5-horario 6-estudante
+//Array com dados de cada venda, ele armazena a posicao da dos demais arrays
+//nos demais arrays ele tem os dados, isso e para funcionar como uma tabela relacional
+//de uma banco de dados
+int sales[1296][7];
 int salesByHour[1296][7];
 
 void waitingForUser(void);
@@ -80,7 +84,7 @@ int main(void) {
 	int countStudent;
 	int countOldMan;
 
-	//initializeBusSeats();
+	//Funcoes que preparam o sistema para o seu funcionamento
 	initializeBusHours();
 
 	while (1) {
@@ -88,7 +92,6 @@ int main(void) {
 		case 1:
 			clearScreen();
 			START: printf("Venda de passagens\n");
-
 			while (1) {
 				totalHours = printBusHours();
 				printf(
@@ -368,6 +371,12 @@ int main(void) {
 }
 
 void waitingForUser(void) {
+	/*
+	 * Esta funcao faz uma pausa na execucao do sistema
+	 *e aguarda que o usuario precione [ENTER] para continuar a execucao
+	 *ele deve ser utilizada sempre que alguma menssagem importante
+	 *deva ser exibida para o usuario
+	 */
 	char prev = 0;
 	printf("\nPrecione [Enter] para continuar.\n");
 	while (1) {
@@ -380,6 +389,9 @@ void waitingForUser(void) {
 }
 
 void clearScreen(void) {
+	/*
+	 * Funcao responsavel por limpar o console
+	 */
 	if (__unix__) {
 		system("clear");
 	} else {
@@ -388,6 +400,10 @@ void clearScreen(void) {
 }
 
 void printCities(void) {
+	/*
+	 * Funcao responsavel por exibir na tela todas as cidades do itinerario da empresa
+	 *
+	 */
 	int i;
 	for (i = 0; i < num_cities; i++) {
 		printf("%d: %s\n", i + 1, cities[i]);
@@ -395,6 +411,9 @@ void printCities(void) {
 }
 
 int printMenu() {
+	/*
+	 * Funcao exibe o menu do sistema e retorna a opcao selecionada
+	 */
 	int option;
 	char c;
 	clearScreen();
@@ -419,6 +438,9 @@ int printMenu() {
 }
 
 struct tm* getLocalTime() {
+	/*
+	 * Funcao retorna a data e hora da maquina
+	 */
 	time_t epoch_time;
 	struct tm* tm_p;
 	epoch_time = time(NULL);
@@ -428,6 +450,10 @@ struct tm* getLocalTime() {
 }
 
 void initializeBusSeats(void) {
+	/*
+	 * Funcao inicializa o array com os assentos do onibus
+	 * colocando para cada posicao o char '0' que indica assento livre
+	 */
 	int i;
 	int j;
 	for (i = 0; i < 4; i++) {
@@ -439,6 +465,13 @@ void initializeBusSeats(void) {
 }
 
 void initializeBusHours(void) {
+	/*
+	 * Funcao inicializa o array de horarios do onibus
+	 * ele utiliza a variavel busBegin e busEnd que sao inteiros que representam
+	 * qual hora a empresa inicia suas atividades, essa hora e convertida para segundos
+	 * depois adiciona o valor da variavel timeBetweenBus, que representa o tempo em segundos
+	 * para a partida de cada onibus
+	 */
 	int i = 0;
 	char hours[3];
 	char minutes[3];
@@ -485,6 +518,9 @@ void initializeBusHours(void) {
 }
 
 void printBusAccents(char printBus[4][9]) {
+	/*
+	 * Funcao mostra na tela os assentos do onibus
+	 */
 	int i, j;
 	printf(" 123456789\n");
 	for (i = 0; i < 4; i++) {
@@ -497,6 +533,10 @@ void printBusAccents(char printBus[4][9]) {
 }
 
 int printBusHours(void) {
+	/*
+	 * Funcao mostra na tela todos os horarios de onibus da empresa
+	 * esses horarios sao adiconaodos no array apos executar a funcao initializeBusHours
+	 */
 	int j = 0, i = 0;
 	while (i < (sizeof(hoursBus) / sizeof(char[12]))) {
 		if (strlen(hoursBus[i]) > 0) {
@@ -515,6 +555,12 @@ int printBusHours(void) {
 }
 
 float calcTotal(int start, int end) {
+	/*
+	 * Funcao calcula o valor a ser pago pela passagem
+	 * ela utiliza o ponto de origem e o destino
+	 * pega a distancia em KM entra os dois pontos e multiplica pelo
+	 * valor por KM que fica na variavel valueOfKM
+	 */
 	float subTotal;
 	unsigned int totalKM;
 	if (citiesKM[start] < citiesKM[end]) {
@@ -527,6 +573,11 @@ float calcTotal(int start, int end) {
 }
 
 void findSaleByHour(int idHour) {
+	/*
+	 * Funcao busca todas as passagens de um determinado horario
+	 * e os adiciona no array de passagens filtradas altera tambem o
+	 * valor da variavel countSalesByHour que indica quantos registros foram filtrados
+	 */
 	int i = 0;
 	int a;
 	countSalesByHour = 0;
@@ -542,6 +593,9 @@ void findSaleByHour(int idHour) {
 }
 
 int validAssent(int row, int column) {
+	/*
+	 * Funcao valida se assento esta ocupado e retorna verdadeiro ou falso
+	 */
 	int i = 0;
 	while (i < countSalesByHour) {
 		if (salesByHour[i][2] == row && salesByHour[i][3] == column) {
@@ -553,6 +607,10 @@ int validAssent(int row, int column) {
 }
 
 int validOldMan(void) {
+	/*
+	 * Funcao valida se o horario ja tem o numero maximo de idosos
+	 * esse valor maximo e definido na variavel maxOldMan
+	 */
 	int i = 0;
 	int count = 0;
 	while (i < countSalesByHour) {
@@ -561,7 +619,7 @@ int validOldMan(void) {
 		}
 		i++;
 	}
-	if (count < 2) {
+	if (count < maxOldMan) {
 		return 1;
 	} else {
 		return 0;
@@ -569,6 +627,10 @@ int validOldMan(void) {
 }
 
 int busNumber(char busHour[12]) {
+	/*
+	 * Funcao responsavel por retornar o numero do onibus
+	 * ela utiliza o horario do onibus e retorna o numero
+	 */
 	char *n = malloc(sizeof(char) * 5);
 	n[0] = busHour[4];
 	n[1] = busHour[3];
